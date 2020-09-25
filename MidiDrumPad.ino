@@ -1,4 +1,6 @@
-// Notes
+#include "Buttons.h"
+
+//------Notes-------------
 #define NOTE_ONE 36
 #define NOTE_TWO 37
 #define NOTE_THREE 38
@@ -13,157 +15,61 @@
 #define NOTE_OFF_CMD 0x80
 #define MAX_MIDI_VELOCITY 127
 
-// Button pins
-const int buttonPin3 = 2;     
-const int buttonPin2 = 3; 
-const int buttonPin1 = 4; 
+//------------------------
 
-const int buttonPin6 = 5;     
-const int buttonPin5 = 6; 
-const int buttonPin4 = 7;
+int NUMBER_BUTTONS = 9;
 
-const int buttonPin9 = 8;  
-const int buttonPin8 = 9; 
-const int buttonPin7 = 10;
+Button Button1(4, NOTE_ONE);
+Button Button2(3, NOTE_TWO);
+Button Button3(2, NOTE_THREE);
+Button Button4(7, NOTE_FOUR);
+Button Button5(6, NOTE_FIVE);
+Button Button6(5, NOTE_SIX);
+Button Button7(10, NOTE_SEVEN);
+Button Button8(9, NOTE_EIGHT);
+Button Button9(8, NOTE_NINE);
 
-// variables for reading the pushbutton status
-int buttonState1 = 1;         
-int buttonState2 = 1;
-int buttonState3 = 1;    
-int buttonState4 = 1;         
-int buttonState5 = 1;
-int buttonState6 = 1;   
-int buttonState7 = 1;         
-int buttonState8 = 1;
-int buttonState9 = 1;
+Button *Buttons[] {&Button1,&Button2,&Button3,&Button4,&Button5,&Button6,&Button7,&Button8,&Button9};
 
-// variables for reading the pushbutton last remebered status
-int buttonLastState1 = 1;         
-int buttonLastState2 = 1;
-int buttonLastState3 = 1;    
-int buttonLastState4 = 1;         
-int buttonLastState5 = 1;
-int buttonLastState6 = 1;   
-int buttonLastState7 = 1;         
-int buttonLastState8 = 1;
-int buttonLastState9 = 1;
+
+int red_light_pin= 11;
+int green_light_pin = 12;
+int blue_light_pin = 13;
 
 
 void setup() {
-  Serial.begin(9600);
-  pinMode(buttonPin1, INPUT_PULLUP);
-  pinMode(buttonPin2, INPUT_PULLUP);
-  pinMode(buttonPin3, INPUT_PULLUP);
-  pinMode(buttonPin4, INPUT_PULLUP);
-  pinMode(buttonPin5, INPUT_PULLUP);
-  pinMode(buttonPin6, INPUT_PULLUP);
-  pinMode(buttonPin7, INPUT_PULLUP);
-  pinMode(buttonPin8, INPUT_PULLUP);
-  pinMode(buttonPin9, INPUT_PULLUP);
+   Serial.begin(9600);
 }
 
 void loop() {
-  // read the state of the pushbutton value:
-  buttonState1 = digitalRead(buttonPin1);
-  buttonState2 = digitalRead(buttonPin2);
-  buttonState3 = digitalRead(buttonPin3);
-  buttonState4 = digitalRead(buttonPin4);
-  buttonState5 = digitalRead(buttonPin5);
-  buttonState6 = digitalRead(buttonPin6);
-  buttonState7 = digitalRead(buttonPin7);
-  buttonState8 = digitalRead(buttonPin8);
-  buttonState9 = digitalRead(buttonPin9);
+  if (NUMBER_BUTTONS != 0) updateButtons();
+}
 
-  //Check state for every button
-  checkState(buttonState1, &buttonLastState1, 1);
-  checkState(buttonState2, &buttonLastState2, 2);
-  checkState(buttonState3, &buttonLastState3, 3);
-  checkState(buttonState4, &buttonLastState4, 4);
-  checkState(buttonState5, &buttonLastState5, 5);
-  checkState(buttonState6, &buttonLastState6, 6);
-  checkState(buttonState7, &buttonLastState7, 7);
-  checkState(buttonState8, &buttonLastState8, 8);
-  checkState(buttonState9, &buttonLastState9, 9);
+void updateButtons() {
+
+  for (int i = 0; i < NUMBER_BUTTONS; i++) {
+      int state = Buttons[i]->getButtonState();
+      
+      //  Button is pressed     
+      if (state == 0) 
+      {
+         midiNoteOn(Buttons[i]->Note,127);
+      }
+  
+      //  Button is not pressed
+      if (state == 1) 
+  	  {
+  		   midiNoteOff(Buttons[i]->Note,0); 
+      }
+  }
 }
 
 
-// Check the status and depending on the value, send a MIDI message
-void checkState(int btnState, int*lastButtonState, unsigned short btnNum){
-
-// Check if previous state and current state are different. If is different, we can send notes.
- if (btnState != *lastButtonState) {
- // If button state is LOW, then button is pressed.
-  if (btnState == LOW) {
-    //Check whitch button is pressed and send MIDI NOTE ON
-        switch(btnNum)
-        {
-          case 1:
-           midiNoteOn(NOTE_ONE,MAX_MIDI_VELOCITY);
-            break;
-          case 2:
-            midiNoteOn(NOTE_TWO,MAX_MIDI_VELOCITY);
-            break;
-          case 3:
-            midiNoteOn(NOTE_THREE,MAX_MIDI_VELOCITY);
-            break;
-          case 4:
-            midiNoteOn(NOTE_FOUR,MAX_MIDI_VELOCITY);
-            break;
-          case 5:
-            midiNoteOn(NOTE_FIVE,MAX_MIDI_VELOCITY);
-            break;
-          case 6:
-            midiNoteOn(NOTE_SIX,MAX_MIDI_VELOCITY);
-            break;
-          case 7:
-            midiNoteOn(NOTE_SEVEN,MAX_MIDI_VELOCITY);
-            break;
-          case 8:
-           midiNoteOn(NOTE_EIGHT,MAX_MIDI_VELOCITY);
-            break;
-          case 9:
-            midiNoteOn(NOTE_NINE,MAX_MIDI_VELOCITY);
-            break;
-        }
-  }
-  else {
-    //Check whitch button is pressed and send MIDI NOTE OFF
-       switch(btnNum)
-        {
-            case 1:
-            midiNoteOff(NOTE_ONE,MAX_MIDI_VELOCITY);
-            break;
-          case 2:
-            midiNoteOff(NOTE_TWO,MAX_MIDI_VELOCITY);
-            break;
-          case 3:
-            midiNoteOff(NOTE_THREE,MAX_MIDI_VELOCITY);
-            break;
-          case 4:
-            midiNoteOff(NOTE_FOUR,MAX_MIDI_VELOCITY);
-            break;
-          case 5:
-            midiNoteOff(NOTE_FIVE,MAX_MIDI_VELOCITY);
-            break;
-          case 6:
-            midiNoteOff(NOTE_SIX,MAX_MIDI_VELOCITY);
-            break;
-          case 7:
-            midiNoteOff(NOTE_SEVEN,MAX_MIDI_VELOCITY);
-            break;
-          case 8:
-           midiNoteOff(NOTE_EIGHT,MAX_MIDI_VELOCITY);
-            break;
-          case 9:
-            midiNoteOff(NOTE_NINE,MAX_MIDI_VELOCITY);
-            break;
-        }
-  }  
-    delay(50);
-  }
-
-  // Set button last state
-  *lastButtonState = btnState;
+void RGB_color(int red_light_value, int green_light_value, int blue_light_value)
+ {
+  analogWrite(red_light_pin, red_light_value);
+  analogWrite(green_light_pin, green_light_value);
+  analogWrite(blue_light_pin, blue_light_value);
 }
 
 // Send MIDI note ON
